@@ -1,22 +1,55 @@
-# Touch panel demo (React + TypeScript)
+# Touch Panel Demo
 
-Демо сенсорной панели 1280×800: свайп между страницами, переход из меню тем же движением,
-дуговой ползунок и переключатели на mock-данных. Данные только через `src/data/useDevices.ts`,
-поэтому mock потом заменяется на Home Assistant без правок компонентов.
+A small touch-screen control panel for a smart home, built with React and TypeScript. It is a portfolio demo sized for a 10.1" 1280×800 display: swipe between pages, a draggable arc slider and toggles, all running on mock data.
 
-## Запуск
+**Live demo:** https://touch-panel-demo.pages.dev
+
+![Screenshot](docs/screenshot.png)
+
+## What it shows
+
+- Page navigation by swipe. Tapping a menu button animates the same way, so it feels like a swipe rather than an instant switch.
+- Gestures that do not fight each other: dragging the arc slider never starts a page swipe, and vertical scroll stays available.
+- A custom arc slider (SVG + pointer events) with keyboard support and large touch targets.
+- Toggles sized for fingers.
+- A single data layer (`src/data/useDevices.ts`). Components only talk to this hook, so the mock source can later be replaced with Home Assistant (REST/WebSocket) without touching the UI.
+- Lightweight visuals: semi-transparent panels and transform/opacity animations only, to stay smooth on low-power hardware.
+
+## Tech stack
+
+React, TypeScript, Vite, Tailwind CSS 4, Framer Motion, @use-gesture/react.
+
+## Run locally
+
 ```bash
-npm create vite@latest touch-panel-demo -- --template react-ts
-cd touch-panel-demo
-npm i framer-motion @use-gesture/react tailwindcss @tailwindcss/vite
+pnpm install
+pnpm dev
 ```
-В `vite.config.ts` добавьте плагин:
-```ts
-import tailwindcss from '@tailwindcss/vite'
-// plugins: [react(), tailwindcss()]
-```
-Замените `src/App.tsx` и `src/index.css`, добавьте папки `src/components` и `src/data` из этого архива,
-удалите `src/App.css`. Затем `npm run dev`. Деплой на Cloudflare Pages: build `npm run build`, output `dist`.
 
-## Идеи на дальше
-Экран Status, график (Recharts), состояния загрузки/ошибки, подключение Home Assistant.
+Open the address shown in the terminal. To try it on a phone on the same Wi-Fi: `pnpm dev --host`.
+
+Build for production: `pnpm build` (output in `dist`).
+
+## Project structure
+
+```
+src/
+  App.tsx                    page container, swipe and navigation
+  components/ArcSlider.tsx   draggable arc slider
+  components/Toggle.tsx      on/off switch
+  data/useDevices.ts         mock data layer (swap for Home Assistant later)
+```
+
+## Status and roadmap
+
+This is a first iteration with two pages (Light, Climate).
+
+Not done yet:
+- Status screen and a chart with period selection
+- Loading, error and offline states
+- Home Assistant integration (REST + WebSocket)
+- Kiosk mode and testing on real Raspberry Pi hardware
+
+## Notes
+
+The design is original and uses mock data only. No accounts, keys or personal data are involved.
