@@ -1,20 +1,54 @@
-import { useEffect, useRef, useState } from 'react'
-import { animate, motion, useMotionValue } from 'framer-motion'
+import { useEffect, useRef, useState, type ReactNode } from 'react'
+import { animate, motion, useMotionValue, useReducedMotion, useTransform, type MotionValue } from 'framer-motion'
 import { useDrag } from '@use-gesture/react'
+import { Activity, Lightbulb, Thermometer } from 'lucide-react'
 import { useDevices } from './data/useDevices'
-import { ArcSlider } from './components/ArcSlider'
-import { Toggle } from './components/Toggle'
+import { LightPage } from './pages/LightPage'
+import { ClimatePage } from './pages/ClimatePage'
+import { StatusPage } from './pages/StatusPage'
 
-const PAGES = ['Light', 'Climate'] as const
+const PARALLAX = true // поставьте false, если на Raspberry Pi будут лаги
 const SPRING = { type: 'spring', stiffness: 260, damping: 32 } as const
 const clamp = (v: number, a: number, b: number) => Math.min(b, Math.max(a, v))
 
+const PAGES = [
+  { name: 'Light', icon: Lightbulb },
+  { name: 'Climate', icon: Thermometer },
+  { name: 'Status', icon: Activity },
+]
+
+// Три слоя фона едут медленнее страниц (f = доля сдвига): отсюда глубина
+const LAYERS = [
+  { f: 0.12, bg: 'radial-gradient(40% 55% at 15% 30%, rgba(251,191,36,.16), transparent 70%), radial-gradient(35% 50% at 85% 75%, rgba(45,212,191,.12), transparent 70%)' },
+  { f: 0.3, bg: 'radial-gradient(22% 35% at 30% 15%, rgba(99,102,241,.18), transparent 70%), radial-gradient(25% 40% at 70% 85%, rgba(251,191,36,.10), transparent 70%)' },
+  { f: 0.5, bg: 'radial-gradient(10% 18% at 20% 70%, rgba(45,212,191,.14), transparent 70%), radial-gradient(12% 20% at 60% 25%, rgba(129,140,248,.14), transparent 70%)' },
+]
+
+function Layer({ x, f, bg, width, k }: { x: MotionValue<number>; f: number; bg: string; width: number; k: number }) {
+  const tx = useTransform(x, (v) => v * f * k)
+  return <motion.div className="absolute inset-y-0 left-0" style={{ x: tx, width: width * (1 + f * k * (PAGES.length - 1)), background: bg }} />
+}
+
+// Глубина: чем дальше страница от центра, тем она меньше и тусклее
+function Page({ i, x, width, children }: { i: number; x: MotionValue<number>; width: number; children: ReactNode }) {
+  const p = useTransform(x, (v) => Math.min(1, Math.abs(-v / width - i)))
+  const scale = useTransform(p, [0, 1], [1, 0.94])
+  const opacity = useTransform(p, [0, 1], [1, 0.35])
+  return (
+    <motion.section className="h-full shrink-0 px-10 pb-8 pt-[104px]" style={{ width, scale, opacity }}>
+      {children}
+    </motion.section>
+  )
+}
+
 export default function App() {
-  const { devices, setBrightness, setTemperature, setLight } = useDevices()
+  const store = useDevices()
   const [index, setIndex] = useState(0)
   const [width, setWidth] = useState(window.innerWidth)
   const stage = useRef<HTMLDivElement>(null)
   const x = useMotionValue(0)
+  const reduce = useReducedMotion()
+  const k = PARALLAX && !reduce ? 1 : 0
 
   useEffect(() => {
     const el = stage.current
@@ -24,11 +58,9 @@ export default function App() {
     return () => ro.disconnect()
   }, [])
 
-  // при смене размера окна остаёмся на текущей странице
   // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => x.set(-index * width), [width])
 
-  // переход из меню выглядит как свайп: та же пружина
   const goTo = (i: number) => {
     setIndex(i)
     animate(x, -i * width, SPRING)
@@ -46,51 +78,33 @@ export default function App() {
     { axis: 'x', filterTaps: true },
   )
 
-  // На Raspberry Pi без живого blur: полупрозрачные панели дешевле для GPU
-  const card = 'rounded-3xl bg-white/[0.07] p-8'
-
   return (
-    <div ref={stage} {...bind()} className="relative h-full w-full touch-pan-y overflow-hidden bg-[#101820]">
-      <nav className="absolute inset-x-0 top-0 z-10 flex justify-center gap-2 p-5">
-        {PAGES.map((name, i) => (
-          <button
-            key={name}
-            onClick={() => goTo(i)}
-            className={`min-h-12 min-w-32 rounded-full px-6 text-lg transition-colors ${
-              i === index ? 'bg-[#E0B15A] text-[#101820]' : 'bg-white/10 text-[#E8EEF2]'
-            }`}
-          >
-            {name}
-          </button>
-        ))}
+    <div ref={stage} {...bind()} className="relative h-full w-full touch-pan-y overflow-hidden bg-[#0A0F1C]">
+      {LAYERS.map((l) => (
+        <Layer key={l.f} x={x} width={width} k={k} f={l.f} bg={l.bg} />
+      ))}
+
+      <nav className="absolute inset-x-0 top-0 z-10 flex justify-center p-5">
+        <div className="flex gap-1 rounded-full border border-white/10 bg-white/[0.06] p-1.5">
+          {PAGES.map(({ name, icon: Icon }, i) => (
+            <button
+              key={name}
+              onClick={() => goTo(i)}
+              className={`flex min-h-12 items-center gap-2 rounded-full px-6 text-lg font-semibold transition-[background-color,color,transform] active:scale-95 ${
+                i === index ? 'bg-white text-[#0A0F1C]' : 'text-[#8B9AB0]'
+              }`}
+            >
+              <Icon size={20} />
+              {name}
+            </button>
+          ))}
+        </div>
       </nav>
 
-      <motion.div className="flex h-full" style={{ x, width: width * PAGES.length }}>
-        <section className="flex h-full items-center justify-center gap-8 px-16 pt-24" style={{ width }}>
-          <div className={`${card} w-[420px]`}>
-            <ArcSlider label="Brightness" value={devices.brightness} min={0} max={100} unit="%" onChange={setBrightness} />
-          </div>
-          <div className={`${card} w-[420px]`}>
-            {Object.entries(devices.lights).map(([name, on]) => (
-              <div key={name} className="flex min-h-16 items-center justify-between text-xl">
-                {name}
-                <Toggle on={on} onChange={(v) => setLight(name, v)} label={name} />
-              </div>
-            ))}
-          </div>
-        </section>
-
-        <section className="flex h-full items-center justify-center gap-8 px-16 pt-24" style={{ width }}>
-          <div className={`${card} w-[420px]`}>
-            <ArcSlider label="Target" value={devices.temperature} min={16} max={30} unit="°C" onChange={setTemperature} />
-          </div>
-          <div className={`${card} w-[420px] text-xl`}>
-            <p className="text-[#8FA1B2]">Indoor</p>
-            <p className="text-5xl font-semibold">21.5°C</p>
-            <p className="mt-6 text-[#8FA1B2]">Humidity</p>
-            <p className="text-5xl font-semibold">48%</p>
-          </div>
-        </section>
+      <motion.div className="relative flex h-full" style={{ x, width: width * PAGES.length }}>
+        <Page i={0} x={x} width={width}><LightPage s={store} /></Page>
+        <Page i={1} x={x} width={width}><ClimatePage s={store} /></Page>
+        <Page i={2} x={x} width={width}><StatusPage s={store} /></Page>
       </motion.div>
     </div>
   )

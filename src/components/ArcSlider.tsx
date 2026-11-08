@@ -6,6 +6,7 @@ type Props = {
   min: number
   max: number
   unit: string
+  accent: string
   onChange: (value: number) => void
 }
 
@@ -13,13 +14,14 @@ type Props = {
 const CX = 150
 const CY = 150
 const R = 120
+const ARC = 'M 30 150 A 120 120 0 0 1 270 150'
 
-export function ArcSlider({ label, value, min, max, unit, onChange }: Props) {
+export function ArcSlider({ label, value, min, max, unit, accent, onChange }: Props) {
   const svg = useRef<SVGSVGElement>(null)
   const [dragging, setDragging] = useState(false)
 
-  const t = (value - min) / (max - min) // 0..1
-  const angle = Math.PI * (1 - t) // π (слева) .. 0 (справа)
+  const t = (value - min) / (max - min)
+  const angle = Math.PI * (1 - t)
   const thumbX = CX + R * Math.cos(angle)
   const thumbY = CY - R * Math.sin(angle)
 
@@ -27,12 +29,13 @@ export function ArcSlider({ label, value, min, max, unit, onChange }: Props) {
     const r = svg.current!.getBoundingClientRect()
     const px = ((e.clientX - r.left) / r.width) * 300
     const py = ((e.clientY - r.top) / r.height) * 170
-    let a = Math.atan2(CY - py, px - CX) // -π..π
-    if (a < 0) a = px < CX ? Math.PI : 0 // ниже дуги: ближайший край
+    let a = Math.atan2(CY - py, px - CX)
+    if (a < 0) a = px < CX ? Math.PI : 0
     onChange(Math.round(min + (1 - a / Math.PI) * (max - min)))
   }
 
   const step = (delta: number) => onChange(Math.min(max, Math.max(min, value + delta)))
+  const dash = `${t * 100} 100`
 
   return (
     <svg
@@ -44,7 +47,7 @@ export function ArcSlider({ label, value, min, max, unit, onChange }: Props) {
       aria-valuemin={min}
       aria-valuemax={max}
       aria-valuenow={value}
-      className="w-full touch-none select-none outline-none focus-visible:ring-2 focus-visible:ring-[#E0B15A]"
+      className="w-full touch-none select-none outline-none focus-visible:ring-2 focus-visible:ring-white/60"
       onPointerDown={(e) => {
         e.stopPropagation() // не даём странице начать свайп
         e.currentTarget.setPointerCapture(e.pointerId)
@@ -59,19 +62,13 @@ export function ArcSlider({ label, value, min, max, unit, onChange }: Props) {
         if (e.key === 'ArrowLeft' || e.key === 'ArrowDown') step(-1)
       }}
     >
-      <path d="M 30 150 A 120 120 0 0 1 270 150" fill="none" stroke="#2A3744" strokeWidth="22" strokeLinecap="round" />
-      <path
-        d="M 30 150 A 120 120 0 0 1 270 150"
-        pathLength={100}
-        strokeDasharray={`${t * 100} 100`}
-        fill="none"
-        stroke="#E0B15A"
-        strokeWidth="22"
-        strokeLinecap="round"
-      />
-      <circle cx={thumbX} cy={thumbY} r={dragging ? 17 : 14} fill="#fff" stroke="#E0B15A" strokeWidth="4" />
-      <text x="150" y="92" textAnchor="middle" className="fill-[#8FA1B2] text-[14px]">{label}</text>
-      <text x="150" y="138" textAnchor="middle" className="fill-[#E8EEF2] text-[44px] font-semibold">{value}{unit}</text>
+      <path d={ARC} fill="none" stroke="rgba(255,255,255,0.08)" strokeWidth="20" strokeLinecap="round" />
+      {/* дешёвое «свечение»: тот же путь шире и прозрачнее, без filter */}
+      <path d={ARC} pathLength={100} strokeDasharray={dash} fill="none" stroke={accent} strokeOpacity="0.18" strokeWidth="34" strokeLinecap="round" />
+      <path d={ARC} pathLength={100} strokeDasharray={dash} fill="none" stroke={accent} strokeWidth="20" strokeLinecap="round" />
+      <circle cx={thumbX} cy={thumbY} r={dragging ? 19 : 15} fill="#fff" stroke={accent} strokeWidth="5" />
+      <text x="150" y="96" textAnchor="middle" fill="#8B9AB0" fontSize="14" fontWeight="600">{label}</text>
+      <text x="150" y="142" textAnchor="middle" fill="#E6EDF7" fontSize="46" fontWeight="700">{value}{unit}</text>
     </svg>
   )
 }
