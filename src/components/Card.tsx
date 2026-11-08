@@ -19,12 +19,12 @@ export function Card({ title, icon: Icon, accent = '#8B9AB0', order = 0, classNa
       initial={{ opacity: 0, y: 18 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ type: 'spring', stiffness: 220, damping: 26, delay: 0.15 + order * 0.07 }}
-      className={`flex flex-col rounded-[28px] border border-white/10 bg-white/[0.06] p-7 shadow-[inset_0_1px_0_rgba(255,255,255,0.12)] ${className}`}
+      className={`flex flex-col rounded-[28px] border border-white/10 bg-white/[0.06] p-5 shadow-[inset_0_1px_0_rgba(255,255,255,0.12)] md:p-7 ${className}`}
     >
       {title && Icon ? (
         <>
-          <div className="mb-4 flex items-center gap-3 text-lg font-semibold">
-            <span className="grid size-11 place-items-center rounded-2xl" style={{ background: accent + '26', color: accent }}>
+          <div className="mb-3 flex items-center gap-2 text-base font-semibold md:mb-4 md:gap-3 md:text-lg">
+            <span className="grid size-9 place-items-center md:size-11 rounded-2xl" style={{ background: accent + '26', color: accent }}>
               <Icon size={22} />
             </span>
             {title}

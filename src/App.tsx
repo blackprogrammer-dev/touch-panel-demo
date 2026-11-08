@@ -35,7 +35,7 @@ function Page({ i, x, width, children }: { i: number; x: MotionValue<number>; wi
   const scale = useTransform(p, [0, 1], [1, 0.94])
   const opacity = useTransform(p, [0, 1], [1, 0.35])
   return (
-    <motion.section className="h-full shrink-0 px-10 pb-8 pt-[104px]" style={{ width, scale, opacity }}>
+    <motion.section className="h-full shrink-0 overflow-y-auto overflow-x-hidden px-4 pb-6 pt-[88px] md:px-10 md:pb-8 md:pt-[104px]" style={{ width, scale, opacity }}>
       {children}
     </motion.section>
   )
@@ -84,18 +84,18 @@ export default function App() {
         <Layer key={l.f} x={x} width={width} k={k} f={l.f} bg={l.bg} />
       ))}
 
-      <nav className="absolute inset-x-0 top-0 z-10 flex justify-center p-5">
+      <nav className="absolute inset-x-0 top-0 z-10 flex justify-center p-3 md:p-5">
         <div className="flex gap-1 rounded-full border border-white/10 bg-white/[0.06] p-1.5">
           {PAGES.map(({ name, icon: Icon }, i) => (
             <button
               key={name}
               onClick={() => goTo(i)}
-              className={`flex min-h-12 items-center gap-2 rounded-full px-6 text-lg font-semibold transition-[background-color,color,transform] active:scale-95 ${
+              className={`flex min-h-12 items-center gap-2 rounded-full px-4 text-base font-semibold md:px-6 md:text-lg transition-[background-color,color,transform] active:scale-95 ${
                 i === index ? 'bg-white text-[#0A0F1C]' : 'text-[#8B9AB0]'
               }`}
             >
               <Icon size={20} />
-              {name}
+              <span className={i === index ? '' : 'hidden sm:inline'}>{name}</span>
             </button>
           ))}
         </div>
