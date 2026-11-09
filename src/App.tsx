@@ -1,10 +1,11 @@
 import { useEffect, useRef, useState, type ReactNode } from 'react'
 import { animate, motion, useMotionValue, useReducedMotion, useTransform, type MotionValue } from 'framer-motion'
 import { useDrag } from '@use-gesture/react'
-import { Activity, Lightbulb, Thermometer } from 'lucide-react'
+import { Activity, Lightbulb, Thermometer, Zap } from 'lucide-react'
 import { useDevices } from './data/useDevices'
 import { LightPage } from './pages/LightPage'
 import { ClimatePage } from './pages/ClimatePage'
+import { EnergyPage } from './pages/EnergyPage'
 import { StatusPage } from './pages/StatusPage'
 
 const PARALLAX = true // поставьте false, если на Raspberry Pi будут лаги
@@ -14,6 +15,7 @@ const clamp = (v: number, a: number, b: number) => Math.min(b, Math.max(a, v))
 const PAGES = [
   { name: 'Light', icon: Lightbulb },
   { name: 'Climate', icon: Thermometer },
+  { name: 'Energy', icon: Zap },
   { name: 'Status', icon: Activity },
 ]
 
@@ -104,7 +106,8 @@ export default function App() {
       <motion.div className="relative flex h-full" style={{ x, width: width * PAGES.length }}>
         <Page i={0} x={x} width={width}><LightPage s={store} /></Page>
         <Page i={1} x={x} width={width}><ClimatePage s={store} /></Page>
-        <Page i={2} x={x} width={width}><StatusPage s={store} /></Page>
+        <Page i={2} x={x} width={width}><EnergyPage s={store} /></Page>
+        <Page i={3} x={x} width={width}><StatusPage s={store} /></Page>
       </motion.div>
     </div>
   )
