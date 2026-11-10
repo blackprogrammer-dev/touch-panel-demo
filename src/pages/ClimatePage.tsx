@@ -27,11 +27,11 @@ export function ClimatePage({ s }: { s: Store }) {
           <div className="flex gap-8">
             <div>
               <p className="text-sm text-[#8B9AB0]">Temperature</p>
-              <p className="text-4xl font-bold md:text-5xl">21.5°C</p>
+              <p className="text-4xl font-bold md:text-5xl">{d.indoorTemp.toFixed(1)}°C</p>
             </div>
             <div>
               <p className="text-sm text-[#8B9AB0]">Humidity</p>
-              <p className="text-4xl font-bold md:text-5xl">48%</p>
+              <p className="text-4xl font-bold md:text-5xl">{d.humidity}%</p>
             </div>
           </div>
         </Card>
