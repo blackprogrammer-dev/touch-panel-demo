@@ -1,6 +1,6 @@
 # Touch Panel Demo
 
-A small touch-screen control panel for a smart home, built with React and TypeScript. It is a portfolio demo sized for a 10.1" 1280×800 display: swipe between pages, a draggable arc slider and toggles, all running on mock data.
+A touch-screen control panel for a smart home, built with React and TypeScript. It is a portfolio demo sized for a 10.1" 1280×800 display and also adapts to phones: swipe between four pages, arc and linear sliders, toggles, segmented controls, a dropdown and a chart, all running on mock data.
 
 **Live demo:** https://touch-panel-demo.pages.dev
 
@@ -8,16 +8,19 @@ A small touch-screen control panel for a smart home, built with React and TypeSc
 
 ## What it shows
 
-- Page navigation by swipe. Tapping a menu button animates the same way, so it feels like a swipe rather than an instant switch.
-- Gestures that do not fight each other: dragging the arc slider never starts a page swipe, and vertical scroll stays available.
-- A custom arc slider (SVG + pointer events) with keyboard support and large touch targets.
-- Toggles sized for fingers.
-- A single data layer (`src/data/useDevices.ts`). Components only talk to this hook, so the mock source can later be replaced with Home Assistant (REST/WebSocket) without touching the UI.
-- Lightweight visuals: semi-transparent panels and transform/opacity animations only, to stay smooth on low-power hardware.
+- **Four pages:** Light, Climate, Energy, Status.
+- **Swipe navigation.** Tapping a menu button animates the same way, so it feels like a swipe rather than an instant switch. Three background layers move at different speeds (parallax).
+- **Gestures that do not fight each other.** Dragging a slider never starts a page swipe, and vertical scroll stays available on small screens.
+- **Touch controls:** custom arc slider (SVG + pointer events), linear slider with ticks (boiler), colour slider (lights), finger-sized toggles, segmented buttons (AC mode, light scenes) and a dropdown (chart period).
+- **Chart** of electricity consumption with a Day / Week / Month selector and touch tooltip (Recharts).
+- **Live mock data.** Indoor temperature drifts towards the target, and the Status page shows what each module is doing (for example "2 of 3 lights on", "Heating to 55°C"), not just online or offline.
+- **Responsive.** Two-column layout on a 1280×800 panel, stacked cards and compact menu on phones.
+- **Data layer.** Components only talk to `src/data/useDevices.ts`, so the mock source can later be replaced with Home Assistant (REST/WebSocket) without touching the UI.
+- **Light visuals.** Semi-transparent panels instead of live blur, transform/opacity animations only, chart animation off, parallax can be switched off with one constant.
 
 ## Tech stack
 
-React, TypeScript, Vite, Tailwind CSS 4, Framer Motion, @use-gesture/react.
+React, TypeScript, Vite, Tailwind CSS 4, Framer Motion, use-gesture, Recharts, lucide-react.
 
 ## Run locally
 
@@ -34,21 +37,20 @@ Build for production: `pnpm build` (output in `dist`).
 
 ```
 src/
-  App.tsx                    page container, swipe and navigation
-  components/ArcSlider.tsx   draggable arc slider
-  components/Toggle.tsx      on/off switch
+  App.tsx                    page container, swipe, parallax, navigation
+  components/                Card, ArcSlider, LinearSlider, Toggle, Segmented, Select, EnergyChart
+  pages/                     Light, Climate, Energy, Status
   data/useDevices.ts         mock data layer (swap for Home Assistant later)
+  data/energy.ts             mock consumption data
 ```
 
 ## Status and roadmap
 
-This is a first iteration with two pages (Light, Climate).
-
 Not done yet:
-- Status screen and a chart with period selection
+- Dashboard overview page, Settings and profile menu
 - Loading, error and offline states
 - Home Assistant integration (REST + WebSocket)
-- Kiosk mode and testing on real Raspberry Pi hardware
+- Kiosk mode, autostart and testing on real Raspberry Pi hardware
 
 ## Notes
 
